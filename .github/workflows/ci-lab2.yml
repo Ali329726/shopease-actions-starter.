@@ -1,3 +1,5 @@
+name: CI-LAB2
+
 on:
   push:
     branches: [main]
