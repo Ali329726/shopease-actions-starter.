@@ -1,0 +1,77 @@
+
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shopease-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test ShopEase Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+
+      - name: Verify Python environment
+        run: |
+          python --version
+          python -m pip --version
+
+      - name: Run application tests
+        run: python -m pytest -v test_app.py
+
+      - name: Validate Dockerfile
+        run: |
+          test -s Dockerfile
+          docker build -t shopease-ci-test .
+
+      - name: Create CI summary
+        if: always()
+        env:
+          REPOSITORY: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+          EVENT: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## ShopEase CI Pipeline"
+            echo ""
+            echo "| Property | Value |"
+            echo "|---|---|"
+            echo "| Repository | ${REPOSITORY} |"
+            echo "| Trigger | ${EVENT} |"
+            echo "| Branch | ${BRANCH} |"
+            echo "| Commit | ${COMMIT} |"
+            echo "| Started by | ${ACTOR} |"
+            echo "| Job status | ${JOB_STATUS} |"
+          } >> "$GITHUB_STEP_SUMMARY"
