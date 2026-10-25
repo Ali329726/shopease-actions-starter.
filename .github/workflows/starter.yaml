@@ -1,4 +1,3 @@
-18. Paste the CODE BELOW
 name: CI                           # shown in the Actions tab
 on:                                # WHEN: the triggers
   push:
@@ -7,4 +6,6 @@ jobs:                              # WHAT: one or more jobs (parallel by default
     runs-on: ubuntu-latest         # WHERE: the runner
     steps:                         # HOW: steps run in order
       - uses: actions/checkout@v7  # reuse an action
-      - run: echo "hello"          # run a shell comm
+      - run: echo "hello"          # run a shell command
+
+
